@@ -1,5 +1,4 @@
 const router = require('express').Router();
-const authRouter = require('./authRoute');
 const cartRouter = require('./cartRoute');
 const categoryRouter = require('./categoryRoute');
 const cityRouter = require('./cityRoute');
@@ -9,10 +8,12 @@ const provinceRouter = require('./provinceRoute');
 const warehouseRouter = require('./warehouseRoute');
 const userRouter = require('./userRoute');
 const orderController = require('../controllers/orderController');
+const authRouter = require('./authRoute');
 
 
 const { authentication, authorization } = require('../middlewares/auth');
 
+router.use('/v1/api/auth', authRouter);
 // cms
 
 const cmsAuthRouter = require('./cms/authRoute');
@@ -22,10 +23,10 @@ const cmsProductRouter = require('./cms/productRoute');
 const cmsStockRouter = require('./cms/stockRoute');
 const cmsWarehouseRouter = require('./cms/warehouseRoute');
 // cms
-router.use('/v1/api/auth', authRouter);
 router.use('/v1/api/cms/auth', cmsAuthRouter);
 router.use('/v1/api/products', productRouter);
 router.post('/v1/api/orders/handle_notification/:id', orderController.handleNotification);
+
 router.use(authentication);
 router.use('/v1/api/cms/categories', authorization, cmsCategoryRouter);
 router.use('/v1/api/cms/orders', authorization, cmsOrderRouter);
@@ -42,10 +43,6 @@ router.use('/v1/api/orders', orderRouter);
 router.use('/v1/api/provinces', provinceRouter);
 router.use('/v1/api/warehouses', warehouseRouter);
 router.use('/v1/api/users', userRouter);
-
-
-
-
 
 
 module.exports = router;
