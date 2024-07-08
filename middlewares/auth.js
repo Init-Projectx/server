@@ -15,7 +15,7 @@ const authentication = async (req, res, next) => {
 
         if (!decoded) throw { name: 'invalidCredentials' }
 
-        const user = await prisma.users.findUnique({
+        const user = await prisma.user.findUnique({
             where: {
                 id: decoded.id
             }
