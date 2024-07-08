@@ -3,19 +3,32 @@ const { hashPassword, comparePassword } = require('../lib/bcrypt');
 const { generateToken } = require('../lib/jwt');
 
 const register = async (params) => {
-    const { name, email, gender, password, role } = params;
+    const { username, email, password } = params;
 
     if (password.length <= 7) throw { name: 'passwordToShort' }
 
     const encryptPassword = await hashPassword(password);
 
-    const data = await prisma.users.create({
+    const existingUser = await prisma.user.findFirst({
+        where: {
+            OR: [
+                { username: username },
+                { email: email }
+            ]
+        }
+    });
+
+    if (existingUser) {
+        if (existingUser.username === username) throw { name: 'userNameAlreadyExist' }
+
+        if (existingUser.email === email) throw { name: 'emailAlreadyExist' }
+    }
+
+    const data = await prisma.user.create({
         data: {
-            name: name,
+            username: username,
             email: email,
-            gender: gender,
-            password: encryptPassword,
-            role: role
+            password: encryptPassword
         }
     });
 
@@ -26,7 +39,7 @@ const register = async (params) => {
 const login = async (params) => {
     const { email, password } = params;
 
-    const foundUser = await prisma.users.findUnique({
+    const foundUser = await prisma.user.findUnique({
         where: {
             email: email
         }
