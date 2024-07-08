@@ -1,4 +1,6 @@
-const router = require('express').Router();
+const express = require('express');
+const router = express.Router();
+const path = require('path');
 const cartRouter = require('./cartRoute');
 const categoryRouter = require('./categoryRoute');
 const cityRouter = require('./cityRoute');
@@ -10,12 +12,15 @@ const userRouter = require('./userRoute');
 const orderController = require('../controllers/orderController');
 const authRouter = require('./authRoute');
 
+//upload photo user
+router.use('/assets/profile/picture', express.static(path.join(__dirname, '../assets/users')));
+
 
 const { authentication, authorization } = require('../middlewares/auth');
 
 router.use('/v1/api/auth', authRouter);
-// cms
 
+// cms
 const cmsAuthRouter = require('./cms/authRoute');
 const cmsCategoryRouter = require('./cms/categoryRoute');
 const cmsOrderRouter = require('./cms/orderRoute');
