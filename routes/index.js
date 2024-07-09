@@ -27,6 +27,7 @@ const cmsOrderRouter = require('./cms/orderRoute');
 const cmsProductRouter = require('./cms/productRoute');
 const cmsStockRouter = require('./cms/stockRoute');
 const cmsWarehouseRouter = require('./cms/warehouseRoute');
+
 // cms
 router.use('/v1/api/cms/auth', cmsAuthRouter);
 router.use('/v1/api/products', productRouter);
