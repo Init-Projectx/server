@@ -30,3 +30,32 @@ const fetchProvince = async () => {
 }
 
 fetchProvince();
+
+const seedCategories = async () => {
+    const categories = [
+        { name: 'Fashion' },
+        { name: 'Food' },
+        { name: 'Healthy' },
+        { name: 'Toys' },
+        { name: 'Feeding' },
+        { name: 'Equipment' },
+    ];
+
+    try {
+        for (const category of categories) {
+            await prisma.category.create({
+                data: {
+                    name: category.name,
+                   
+                },
+            });
+        }
+        console.log('Seeding categories finished.');
+    } catch (error) {
+        console.log(error);
+    } finally {
+        await prisma.$disconnect();
+    }
+};
+
+seedCategories();
