@@ -42,13 +42,13 @@ const update = async (params, file) => {
 
     if (!provinceData) throw { name: 'notFound', message: 'Province Data Not Found' };
 
-    // const cityData = await prisma.city.findFirst({
-    //     where: {
-    //         id: +city_id
-    //     }
-    // });
+    const cityData = await prisma.city.findFirst({
+        where: {
+            id: +city_id
+        }
+    });
 
-    // if (!cityData) throw { name: 'notFound', message: 'City Data Not Found' }
+    if (!cityData) throw { name: 'notFound', message: 'City Data Not Found' }
 
     const data = await prisma.user.update({
         where: {
@@ -59,7 +59,7 @@ const update = async (params, file) => {
             phone_number: phoneNumber,
             address: address,
             province_id: provinceData.id,
-            // city_id: cityData.id,
+            city_id: cityData.id,
             zip_code: +zipCode,
             photo: photoUrl
         }
