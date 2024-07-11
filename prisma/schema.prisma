@@ -91,14 +91,14 @@ model Product_Warehouse {
 model Warehouse {
   id Int @id @default(autoincrement())
   name String
-  cityId Int
+  city_id Int 
   province_id Int
   address String
-  zipCode Int
+  zip_code Int
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  city City @relation(fields: [cityId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  city City @relation(fields: [city_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
   province Province @relation(fields: [province_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
   Product_Warehouses Product_Warehouse[]
   cart Cart[]
