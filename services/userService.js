@@ -15,7 +15,7 @@ const findOne = async (params) => {
 
 //untuk semua form update user di frontend harus diberikan required kecuali photo
 const update = async (params, file) => {
-    const { id, username, phoneNumber, city, province, zipCode, address } = params;
+    const { id, username, phoneNumber, city_id, province_id, zipCode, address } = params;
 
     const user = await prisma.user.findUnique({
         where: {
@@ -36,10 +36,7 @@ const update = async (params, file) => {
 
     const provinceData = await prisma.province.findFirst({
         where: {
-            name: {
-                mode: 'insensitive',
-                equals: province,
-            },
+            id: province_id
         },
     });
 
@@ -47,10 +44,7 @@ const update = async (params, file) => {
 
     const cityData = await prisma.city.findFirst({
         where: {
-            name: {
-                mode: 'insensitive',
-                equals: city
-            }
+            id: city_id
         }
     });
 
