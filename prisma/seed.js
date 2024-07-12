@@ -207,9 +207,9 @@ async function main() {
 
   // Seed users
 
-  const hashedPasswordUser1 = await bcrypt.hashPassword("userpass");
+  const hashedPasswordUser1 = await bcrypt.hashPassword("userpass1234");
 
-  const user = await prisma.user.create({
+  const user1 = await prisma.user.create({
     data: {
       email: "mahen@gmail.com",
       username: "Mahen",
@@ -224,7 +224,24 @@ async function main() {
     },
   });
 
-  const hashedPasswordAdmin = await bcrypt.hashPassword("adminpass");
+  const hashedPasswordUser2 = await bcrypt.hashPassword("userpass12345");
+
+  const user2 = await prisma.user.create({
+    data: {
+      email: "mahon@gmail.com",
+      username: "Kucing",
+      password: hashedPasswordUser2,
+      role: "user",
+      phone_number: "+628123456789",
+      address: "Jl. Contoh No. 1",
+      province_id: 1,
+      city_id: 1,
+      zip_code: 12345,
+      photo: "https://example.com/user1.jpg",
+    },
+  });
+
+  const hashedPasswordAdmin = await bcrypt.hashPassword("adminpass1234");
 
   const admin = await prisma.user.create({
     data: {
@@ -247,73 +264,73 @@ async function main() {
   const warehouses = [
     {
       name: "Warehouse 1",
-      city_id: 1,
-      province_id: 1,
+      cityId: 39,
+      province_id: 5,
       address: "Jln. Rakamin No.1",
-      zip_code: 54321,
+      zipCode: 54321,
     },
     {
       name: "Warehouse 2",
-      city_id: 2,
-      province_id: 2,
+      cityId: 39,
+      province_id: 5,
       address: "Jln. Rakamin No.2",
-      zip_code: 54321,
+      zipCode: 54321,
     },
     {
       name: "Warehouse 3",
-      city_id: 3,
-      province_id: 3,
+      cityId: 39,
+      province_id: 5,
       address: "Jln. Rakamin No.3",
-      zip_code: 54321,
+      zipCode: 54321,
     },
     {
       name: "Warehouse 4",
-      city_id: 4,
-      province_id: 4,
+      cityId: 39,
+      province_id: 5,
       address: "Jln. Rakamin No.4",
-      zip_code: 54321,
+      zipCode: 54321,
     },
     {
       name: "Warehouse 5",
-      city_id: 5,
+      cityId: 39,
       province_id: 5,
       address: "Jln. Rakamin No.5",
-      zip_code: 54321,
+      zipCode: 54321,
     },
     {
       name: "Warehouse 6",
-      city_id: 6,
-      province_id: 6,
+      cityId: 39,
+      province_id: 5,
       address: "Jln. Rakamin No.6",
-      zip_code: 54321,
+      zipCode: 54321,
     },
     {
       name: "Warehouse 7",
-      city_id: 7,
-      province_id: 7,
+      cityId: 39,
+      province_id: 5,
       address: "Jln. Rakamin No.7",
-      zip_code: 54321,
+      zipCode: 54321,
     },
     {
       name: "Warehouse 8",
-      city_id: 8,
-      province_id: 8,
+      cityId: 39,
+      province_id: 5,
       address: "Jln. Rakamin No.8",
-      zip_code: 54321,
+      zipCode: 54321,
     },
     {
       name: "Warehouse 9",
-      city_id: 9,
-      province_id: 9,
+      cityId: 39,
+      province_id: 5,
       address: "Jln. Rakamin No.9",
-      zip_code: 54321,
+      zipCode: 54321,
     },
     {
       name: "Warehouse 10",
-      city_id: 10,
-      province_id: 10,
+      cityId: 39,
+      province_id: 5,
       address: "Jln. Rakamin No.10",
-      zip_code: 54321,
+      zipCode: 54321,
     },
   ];
 
@@ -345,7 +362,7 @@ async function main() {
       courier: "JNE",
     },
     {
-      user_id: 1,
+      user_id: 2,
       warehouse_id: 2,
       shipping_cost: 15000,
       total_price: 60000,
@@ -354,7 +371,7 @@ async function main() {
       courier: "JNE",
     },
     {
-      user_id: 1,
+      user_id: 3,
       warehouse_id: 3,
       shipping_cost: 20000,
       total_price: 70000,
@@ -418,7 +435,7 @@ async function main() {
       status: "pending",
     },
     {
-      user_id: 1,
+      user_id: 2,
       warehouse_id: 2,
       shipping_cost: 15000,
       payment_method: "Credit Card",
