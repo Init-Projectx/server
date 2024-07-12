@@ -66,6 +66,7 @@ model Product {
   slug String @unique
   weight Int
   sku String @unique
+  status Status @default(active)
   category_id Int
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -91,14 +92,15 @@ model Product_Warehouse {
 model Warehouse {
   id Int @id @default(autoincrement())
   name String
-  city_id Int 
+  cityId Int
   province_id Int
   address String
-  zip_code Int
+  zipCode Int
+  status Status @default(active)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  city City @relation(fields: [city_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  city City @relation(fields: [cityId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   province Province @relation(fields: [province_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
   Product_Warehouses Product_Warehouse[]
   cart Cart[]
@@ -115,18 +117,18 @@ model Category {
 
 model Cart {
   id Int @id @default(autoincrement())
-  user_id Int
-  warehouse_id Int
-  shipping_cost Int
-  total_price Int
-  net_price Int
+  user_id Int @unique
+  warehouse_id Int?
+  shipping_cost Int?
+  total_price Int?
+  net_price Int?
   shipping_method String?
   courier String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
   user User @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  warehouse Warehouse @relation(fields: [warehouse_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  warehouse Warehouse? @relation(fields: [warehouse_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
   cart_items Cart_items[]
 }
 
@@ -175,6 +177,11 @@ model Orders {
 
   user User @relation(fields: [user_id], references: [id], onUpdate: Cascade, onDelete: Cascade)
   order_products Order_products[]
+}
+
+enum Status {
+  active
+  inactive
 }
 
 enum Role {
