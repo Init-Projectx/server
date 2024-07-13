@@ -60,8 +60,6 @@ const update = async (params) => {
 
     const warehouse = await findOne({id: +id});
 
-    if(warehouse.name === name) throw {name: 'exist', message: 'Warehouse Already Exist'}
-
     if (!warehouse) throw { name: 'notFound', message: 'Warehouse Not Found' }
 
     const data = await prisma.warehouse.update({
