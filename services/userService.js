@@ -8,14 +8,14 @@ const findOne = async (params) => {
         }
     });
 
-    if (!data) throw { name: 'notFound', message: 'User Data Not Found' }
+    if (!data) throw { name: 'userNotFound' }
 
     return data;
 };
 
 //untuk semua form update user di frontend harus diberikan required kecuali photo
 const update = async (params, file) => {
-    const { id, username, phoneNumber, city_id, province_id, zipCode, address } = params;
+    const { id, username, phoneNumber, city, province, zipCode, address } = params;
 
     const user = await prisma.user.findUnique({
         where: {
@@ -23,9 +23,9 @@ const update = async (params, file) => {
         }
     });
 
-    if (!user) throw { name: 'notFound', message: 'User Not Found' }
+    if (!user) throw { name: 'userNotFound' }
 
-    if (user.username === username) throw { name: 'exist', message: 'Username Already Exist' }
+    if (user.username === username) throw { name: 'userNameAlreadyExist' }
 
     let photoUrl = user.photo;
 
@@ -36,19 +36,25 @@ const update = async (params, file) => {
 
     const provinceData = await prisma.province.findFirst({
         where: {
-            id: +province_id
+            name: {
+                mode: 'insensitive',
+                equals: province,
+            },
         },
     });
 
-    if (!provinceData) throw { name: 'notFound', message: 'Province Data Not Found' };
+    if (!provinceData) throw { name: 'provinceNotFound' };
 
     const cityData = await prisma.city.findFirst({
         where: {
-            id: +city_id
+            name: {
+                mode: 'insensitive',
+                equals: city
+            }
         }
     });
 
-    if (!cityData) throw { name: 'notFound', message: 'City Data Not Found' }
+    if (!cityData) throw { name: 'cityNotFound' }
 
     const data = await prisma.user.update({
         where: {
