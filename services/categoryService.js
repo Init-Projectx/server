@@ -7,7 +7,7 @@ const findOne = async (params) => {
 
     const data = await prisma.category.findFirst({
         where: {
-            id: id
+            id: +id
         }
     });
  
