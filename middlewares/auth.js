@@ -5,15 +5,15 @@ const authentication = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
 
-        if (!authHeader) throw { name: 'unauthenticated' }
+        if (!authHeader) throw { name: 'Unauthenticated', message: 'Access Token Required' }
 
         const token = authHeader.split(' ')[1];
 
-        if (!token) throw { name: 'unauthenticated' }
+        if (!token) throw { name: 'Unauthenticated', message: 'Access Token Required' }
 
         const decoded = verifyToken(token);
 
-        if (!decoded) throw { name: 'invalidCredentials' }
+        if (!decoded) throw { name: 'invalidCredentials', message: 'Invalid Credentials' }
 
         const user = await prisma.user.findUnique({
             where: {
@@ -21,7 +21,7 @@ const authentication = async (req, res, next) => {
             }
         });
 
-        if (!user) throw { name: 'invalidCredentials' }
+        if (!user) throw { name: 'invalidCredentials', message: 'Invalid Credentials' }
 
         req.loggedUser = {
             id: user.id,
@@ -39,7 +39,7 @@ const authorization = (req, res, next) => {
     try {
         const superUser = req.loggedUser.role;
 
-        if (superUser == null || superUser != 'admin') throw { name: 'unauthorized' }
+        if (superUser == null || superUser != 'admin') throw { name: 'Unauthorized', message: 'You Need Authorization' }
 
         next();
 

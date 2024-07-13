@@ -6,6 +6,7 @@ router.get('/', warehouseController.findAll);
 router.get('/:id', warehouseController.findOne);
 router.post('/', warehouseController.create);
 router.put('/:id', warehouseController.update);
-router.delete('/:id', warehouseController.destroy);
+router.put('/delete/:id', warehouseController.destroy);
+router.put('/activated/:id', warehouseController.activatedWarehouse);
 
 module.exports = router;
