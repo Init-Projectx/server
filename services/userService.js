@@ -58,8 +58,8 @@ const update = async (params, file) => {
             username: username,
             phone_number: phoneNumber,
             address: address,
-            province_id: province_id,
-            city_id: city_id,
+            province_id: provinceData.id,
+            city_id: cityData.id,
             zip_code: +zipCode,
             photo: photoUrl
         }
