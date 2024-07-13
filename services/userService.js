@@ -8,7 +8,7 @@ const findOne = async (params) => {
         }
     });
 
-    if (!data) throw { name: 'userNotFound' }
+    if (!data) throw { name: 'notFound', message: 'User Data Not Found' }
 
     return data;
 };
@@ -23,9 +23,9 @@ const update = async (params, file) => {
         }
     });
 
-    if (!user) throw { name: 'userNotFound' }
+    if (!user) throw { name: 'notFound', message: 'User Not Found' }
 
-    if (user.username === username) throw { name: 'userNameAlreadyExist' }
+    if (user.username === username) throw { name: 'exist', message: 'Username Already Exist' }
 
     let photoUrl = user.photo;
 
@@ -36,19 +36,19 @@ const update = async (params, file) => {
 
     const provinceData = await prisma.province.findFirst({
         where: {
-            id: province_id
+            id: +province_id
         },
     });
 
-    if (!provinceData) throw { name: 'provinceNotFound' };
+    if (!provinceData) throw { name: 'notFound', message: 'Province Data Not Found' };
 
     const cityData = await prisma.city.findFirst({
         where: {
-            id: city_id
+            id: +city_id
         }
     });
 
-    if (!cityData) throw { name: 'cityNotFound' }
+    if (!cityData) throw { name: 'notFound', message: 'City Data Not Found' }
 
     const data = await prisma.user.update({
         where: {
