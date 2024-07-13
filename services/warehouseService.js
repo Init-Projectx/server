@@ -58,7 +58,7 @@ const create = async (params) => {
 const update = async (params) => {
     const { id, name, city_id, province_id, address, zipCode } = params;
 
-    const warehouse = await findOne(id)
+    const warehouse = await findOne({id: +id});
 
     if (!warehouse) throw { name: 'notFound', message: 'Warehouse Not Found' }
 
@@ -67,8 +67,8 @@ const update = async (params) => {
             id: +warehouse.id
         }, data: {
             name: name,
-            cityId: warehouse.cityId,
-            province_id: warehouse.province_id,
+            cityId: city_id,
+            province_id: province_id,
             address: address,
             zipCode: zipCode
         }
