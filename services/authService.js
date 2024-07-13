@@ -5,7 +5,7 @@ const { generateToken } = require('../lib/jwt');
 const register = async (params) => {
     const { username, email, password } = params;
 
-    if (password.length <= 7) throw { name: 'passwordToShort' }
+    if (password.length <= 7) throw { name: 'invalidInput', message: 'Password To Short' }
 
     const encryptPassword = await hashPassword(password);
 
@@ -19,9 +19,9 @@ const register = async (params) => {
     });
 
     if (existingUser) {
-        if (existingUser.username === username) throw { name: 'userNameAlreadyExist' }
+        if (existingUser.username === username) throw { name: 'exist', message: 'Username Already Exist' }
 
-        if (existingUser.email === email) throw { name: 'emailAlreadyExist' }
+        if (existingUser.email === email) throw { name: 'exist', message: 'Email Already Exist' }
     }
 
     const data = await prisma.user.create({
@@ -29,6 +29,13 @@ const register = async (params) => {
             username: username,
             email: email,
             password: encryptPassword
+        }
+    });
+
+
+    const cart = await prisma.cart.create({
+        data: {
+            user_id: data.id
         }
     });
 
@@ -45,11 +52,11 @@ const login = async (params) => {
         }
     });
 
-    if (!foundUser) throw { name: 'invalidCredentials' }
+    if (!foundUser) throw { name: 'invalidCredentials', message: 'Invalid Credentials' }
 
     const matchPassword = await comparePassword(password, foundUser.password);
 
-    if (!matchPassword) throw { name: 'invalidCredentials' }
+    if (!matchPassword) throw { name: 'invalidCredentials', message: 'Invalid Credentials' }
 
     const accessToken = generateToken({
         id: foundUser.id,
