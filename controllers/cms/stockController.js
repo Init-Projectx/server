@@ -1,5 +1,30 @@
-const addStock = async (req, res, next) => {}
+const stockService = require('../../services/stockService.js');
 
-const getStock = async (req, res, next) => {}
+
+const addStock = async (req, res, next) => {
+    const { productId, warehouseId, quantity } = req.body;
+
+    try {
+      const updatedStock = await stockService.addStock(productId, warehouseId, quantity);
+      res.status(200).json(updatedStock);
+    } catch (error) {
+      next(error);
+    }
+}
+
+const getStock = async (req, res, next) => {
+    const { productId, warehouseId } = req.query;
+
+  try {
+    const stock = await stockService.getStock(productId, warehouseId);
+    if (stock) {
+      res.status(200).json(stock);
+    } else {
+      res.status(404).json({ message: 'Stock not found' });
+    }
+  } catch (error) {
+    next(error);
+  }
+}
 
 module.exports = {addStock, getStock};
