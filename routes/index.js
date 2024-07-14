@@ -14,6 +14,7 @@ const authRouter = require('./authRoute');
 
 //upload photo user
 router.use('/assets/profile/picture', express.static(path.join(__dirname, '../assets/users')));
+router.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 
 const { authentication, authorization } = require('../middlewares/auth');
