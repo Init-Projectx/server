@@ -1,7 +1,7 @@
 const prisma = require("../lib/prisma");
 
 const addStock = async (productId, warehouseId, quantity) => {
-  try {
+
     // Check if stock already exists for this product and warehouse
     const existingStock = await prisma.product_Warehouse.findUnique({
       where: {
@@ -20,24 +20,10 @@ const addStock = async (productId, warehouseId, quantity) => {
         },
         data: {
           stock: existingStock.stock + quantity,
-          updated_at: new Date(),
         },
       });
-    } else {
-      // Create new stock record
-      return await prisma.product_Warehouse.create({
-        data: {
-          product_id: productId,
-          warehouse_id: warehouseId,
-          stock: quantity,
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      });
-    }
-  } catch (error) {
-    throw new Error(`Error adding stock: ${error.message}`);
-  }
+    } 
+    //tambahkan validasi jika produknya tidak ada, throw {name : 'notFound', message : 'product not found '}
 };
 
 const getStock = async (productId, warehouseId) => {

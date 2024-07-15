@@ -6,7 +6,10 @@ const addStock = async (req, res, next) => {
 
     try {
       const updatedStock = await stockService.addStock(productId, warehouseId, quantity);
-      res.status(200).json(updatedStock);
+      res.status(200).json({
+        message : 'update stock success!!', 
+        data : updatedStock
+      });
     } catch (error) {
       next(error);
     }
@@ -17,11 +20,11 @@ const getStock = async (req, res, next) => {
 
   try {
     const stock = await stockService.getStock(productId, warehouseId);
-    if (stock) {
-      res.status(200).json(stock);
-    } else {
-      res.status(404).json({ message: 'Stock not found' });
-    }
+
+    res.status(200).json({
+      message : 'stock data', 
+      data : stock
+    });
   } catch (error) {
     next(error);
   }
