@@ -3,8 +3,8 @@ const productService = require('../services/productService');
 const findAll = async (req, res, next) => {
     try {
         let { page = 1, limit = 10 } = req.query;
-        page = Number(page); // Konversi page ke tipe Number jika perlu
-        limit = Number(limit); // Konversi limit ke tipe Number jika perlu
+        page = Number(page); 
+        limit = Number(limit); 
 
         const products = await productService.findAll({ page, limit }, false);
         res.status(200).json(products);
