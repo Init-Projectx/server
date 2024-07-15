@@ -1,4 +1,4 @@
-const prisma = require('../lib/prisma');
+const prisma = require("../lib/prisma");
 
 const addStock = async (params) => {
     const existingProduct = await prisma.product_Warehouse.findFirst({
