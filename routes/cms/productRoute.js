@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../../controllers/cms/productController');
-const upload = require('../../middlewares/uploadMiddleware');
+const upload = require('../../middlewares/multerProduct');
 
 router.get('/', productController.findAll);
 router.get('/:slug', productController.findOne);

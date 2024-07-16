@@ -8,5 +8,6 @@ router.use(authentication);
 
 router.get('/', productController.findAll);
 router.get('/:slug', productController.findOne);
+router.get('/category/:categoryId', productController.findByCategory);
 
 module.exports = router;

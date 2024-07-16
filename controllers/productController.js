@@ -7,9 +7,12 @@ const findAll = async (req, res, next) => {
         limit = Number(limit); 
 
         const products = await productService.findAll({ page, limit }, false);
-        res.status(200).json(products);
+        res.status(200).json({
+            message: 'success get all data',
+            data: products
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        next(error);
     }
 };
 
@@ -17,11 +20,27 @@ const findOne = async (req, res, next) => {
     try {
         const { slug } = req.params;
         const product = await productService.findOne(slug, false);
-        res.status(200).json(product);
+        res.status(200).json({
+            message: 'Success get data',
+            data: product
+        });
     } catch (error) {
-        res.status(404).json({ message: error.message });
+        next(error);
+    }
+};
+
+const findByCategory = async (req, res, next) => {
+    try {
+        const { categoryId } = req.params;
+        const products = await productService.findByCategory(categoryId);
+        res.status(200).json({
+            message: 'success get data from category',
+            data: products
+        });
+    } catch (error) {
+        next(error);
     }
 };
 
 
-module.exports = {findAll, findOne};
+module.exports = {findAll, findOne, findByCategory};
