@@ -8,14 +8,14 @@ const findOne = async (params) => {
         }
     });
 
-    if (!data) throw { name: 'userNotFound' }
+    if (!data) throw { name: 'notFound', message: 'User Data Not Found' }
 
     return data;
 };
 
 //untuk semua form update user di frontend harus diberikan required kecuali photo
 const update = async (params, file) => {
-    const { id, username, phoneNumber, city, province, zipCode, address } = params;
+    const { id, username, phoneNumber, city_id, province_id, zipCode, address } = params;
 
     const user = await prisma.user.findUnique({
         where: {
@@ -23,9 +23,9 @@ const update = async (params, file) => {
         }
     });
 
-    if (!user) throw { name: 'userNotFound' }
+    if (!user) throw { name: 'notFound', message: 'User Not Found' }
 
-    if (user.username === username) throw { name: 'userNameAlreadyExist' }
+    if (user.username === username) throw { name: 'exist', message: 'Username Already Exist' }
 
     let photoUrl = user.photo;
 
@@ -36,25 +36,19 @@ const update = async (params, file) => {
 
     const provinceData = await prisma.province.findFirst({
         where: {
-            name: {
-                mode: 'insensitive',
-                equals: province,
-            },
+            id: +province_id
         },
     });
 
-    if (!provinceData) throw { name: 'provinceNotFound' };
+    if (!provinceData) throw { name: 'notFound', message: 'Province Data Not Found' };
 
     const cityData = await prisma.city.findFirst({
         where: {
-            name: {
-                mode: 'insensitive',
-                equals: city
-            }
+            id: +city_id
         }
     });
 
-    if (!cityData) throw { name: 'cityNotFound' }
+    if (!cityData) throw { name: 'notFound', message: 'City Data Not Found' }
 
     const data = await prisma.user.update({
         where: {
@@ -64,8 +58,8 @@ const update = async (params, file) => {
             username: username,
             phone_number: phoneNumber,
             address: address,
-            province_id: provinceData.id,
-            city_id: cityData.id,
+            province_id: province_id,
+            city_id: city_id,
             zip_code: +zipCode,
             photo: photoUrl
         }
