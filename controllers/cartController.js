@@ -1,3 +1,4 @@
+const { warehouse, cart_items } = require('../lib/prisma');
 const cartService = require('../services/cartService');
 
 const findOne = async (req, res, next) => {
@@ -6,8 +7,6 @@ const findOne = async (req, res, next) => {
             id: +req.params.id,
             user_id: +req.loggedUser.id
         }
-
-        console.log('<<<<<<<<<<<controller', params);
 
         const data = await cartService.findOne(params);
 
@@ -22,12 +21,12 @@ const findOne = async (req, res, next) => {
 
 const update = async (req, res, next) => {
     try {
-        //req.body butuh shipping method dan kurir gess
         const params = {
-            id: req.params.id,
             user_id: req.loggedUser.id,
             ...req.body
         }
+
+        console.log('<<<<<<<<<<<<<<<<<<', params);
 
         const data = await cartService.update(params);
 
@@ -40,8 +39,55 @@ const update = async (req, res, next) => {
     }
 }
 
-const reset = async (req, res, next) => { }
+const reset = async (req, res, next) => {
+    try {
+        const params = {
+            user_id: req.loggedUser.id
+        }
 
-const deleteProduct = async (req, res, next) => { }
+        const data = await cartService.reset(params);
 
-module.exports = { findOne, update, reset, deleteProduct };
+        res.status(200).json({
+            message: 'Reset Cart Success',
+            data: data
+        })
+    } catch (error) {
+        next(error);
+    }
+}
+
+const deleteProduct = async (req, res, next) => {
+    try {
+        const params = {
+            user_id: req.loggedUser.id,
+            cart_items_id: +req.params.cart_items_id
+        }
+
+        const data = await cartService.deleteProduct(params);
+
+        res.status(200).json({
+            message: 'Delete cart items success'
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+const getShippingCost = async (req, res, next) => {
+    try {
+        const params = {
+            ...req.body
+        }
+
+        const data = await cartService.getShippingCost(params);
+
+        res.status(200).json({
+            message: 'Get shipping cost success',
+            data: data
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+module.exports = { findOne, update, reset, deleteProduct, getShippingCost };

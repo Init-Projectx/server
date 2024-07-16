@@ -5,7 +5,6 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const findOne = async (params) => {
-
     const cart = await prisma.cart.findFirst({
         where: params,
         include: { cart_items: true }
@@ -15,180 +14,247 @@ const findOne = async (params) => {
 };
 
 const update = async (params) => {
-        const updatedCart = await prisma.$transaction(async (prisma) => {
-            const findOneParams = {
-                id: +params.id,
-                user_id: +params.user_id
-            };
-            // dapetin cart
-            const cart = await prisma.cart.findUnique({
-                where: findOneParams,
-                include: {
-                    cart_items: true
-                }
+    const { user_id, courier, shipping_method, shipping_cost, warehouse_id, cart_items_attr } = params;
+    const { product_id, quantity } = cart_items_attr;
+
+    return prisma.$transaction(async (prisma) => {
+        const cart = await prisma.cart.findUnique({
+            where: { user_id: Number(user_id) },
+            include: { cart_items: true }
+        });
+
+        if (!cart) {
+            throw { name: "notFound", message: "Cart Not Found" };
+        }
+
+        if (warehouse_id) {
+            const validWarehouse = await prisma.warehouse.findUnique({
+                where: { id: warehouse_id }
             });
 
-            if (!cart) {
-                throw { name: 'notFound', message: 'Cart to Update Not Found' };
+            if (!validWarehouse) {
+                throw { name: "notFound", message: "Warehouse Not Found" };
+            }
+        }
+
+        if (product_id && quantity !== undefined) {
+            if (quantity <= 0) {
+                throw { name: "invalidInput", message: "Quantity must be greater than zero" };
             }
 
-            // ini product
-            const product = await prisma.product.findFirst({
+            const productWarehouse = await prisma.product_Warehouse.findFirst({
                 where: {
-                    id: +params.product_id
-                },
-                include: {
-                    Product_Warehouses: {
-                        include: {
-                            warehouse: {
-                                include: {
-                                    city: true
-                                }
-                            }
-                        }
-                    }
+                    product_id: product_id,
                 }
             });
 
-            console.log('<<<<<<<<<<<<<<<', product);
+            if (!productWarehouse) {
+                throw { name: "notFound", message: "Product is not available in this warehouse" };
+            }
+
+            if (productWarehouse.stock < quantity) {
+                throw { name: "invalidInput", message: "Stock is not enough" };
+            }
+
+            const product = await prisma.product.findUnique({
+                where: { id: product_id }
+            });
 
             if (!product) {
-                throw { name: 'notFound', message: 'Product Not Found' };
+                throw { name: "notFound", message: "Product Not Found" };
             }
 
-            // stock product
-            const stockProduct = product.Product_Warehouses[0].stock;
+            let cartItem = cart.cart_items.find(item => item.product_id === product_id);
 
-            console.log('<<<<<<<<<<<<<<<<<<', stockProduct);
-
-            if (stockProduct === 0) {
-                throw { name: 'notFound', message: 'Out of Stock' };
-            }
-
-            // Cek apakah product sudah ada di cart atau belum
-            const existingCartItem = await prisma.cart_items.findFirst({
-                where: {
-                    cart_id: cart.id,
-                    product_id: product.id
-                }
-            });
-
-            if (existingCartItem) {
-
-                console.log('<<<<<<<<<<<', product.id);
-
-                const updateCartItems = await prisma.cart_items.update({
-                    where: {
-                        product_id: product.id
-                    }, data: {
-                        quantity: params.quantity
+            if (cartItem) {
+                await prisma.cart_items.update({
+                    where: { id: cartItem.id },
+                    data: {
+                        quantity: quantity,
+                        price: product.price
+                    }
+                });
+            } else {
+                await prisma.cart_items.create({
+                    data: {
+                        cart_id: cart.id,
+                        product_id: product_id,
+                        quantity: quantity,
+                        price: product.price
                     }
                 });
             }
+        }
 
-            // hitung total harga product
-            let price = product.price * params.quantity;
+        const updatedCartItems = await prisma.cart_items.findMany({
+            where: { cart_id: cart.id }
+        });
 
-            // Buat cart_item baru jika product belum ada di cart
-            const newCartItem = await prisma.cart_items.create({
-                data: {
-                    cart_id: cart.id,
-                    product_id: product.id,
-                    quantity: params.quantity,
-                    price: price
-                }
-            });
+        const total_price = updatedCartItems.reduce((total, item) => {
+            return total + item.price * item.quantity;
+        }, 0);
 
-            // nyari user
-            const user = await prisma.user.findUnique({
-                where: {
-                    id: +params.user_id
-                }
-            });
+        const net_price = total_price + shipping_cost;
 
-            if (!user) {
-                throw { name: 'notFound', message: 'User Not Found' };
+        const updatedCart = await prisma.cart.update({
+            where: { id: Number(cart.id) },
+            data: {
+                courier: courier,
+                shipping_method: shipping_method,
+                shipping_cost: shipping_cost,
+                warehouse_id: warehouse_id,
+                total_price: total_price,
+                net_price: net_price
             }
-
-            // Inputan buat raja ongkir
-            const warehouseId = product.Product_Warehouses[0].warehouse_id;
-            const originId = product.Product_Warehouses[0].warehouse.city.id;
-            const destinationId = user.city_id;
-
-            const shippingCostUrl = `${process.env.API_URL_RAJA_ONGKIR}/cost`;
-
-            // fetch data api raja ongkir
-            const getShippingCost = async () => {
-                try {
-                    const response = await axios.post(
-                        shippingCostUrl,
-                        new URLSearchParams({
-                            origin: `${originId}`,
-                            destination: `${destinationId}`,
-                            weight: `${product.weight}`,
-                            courier: params.courier
-                        }),
-                        {
-                            headers: {
-                                'key': process.env.RAJAONGKIR_SECRET_KEY,
-                                'content-type': 'application/x-www-form-urlencoded'
-                            }
-                        }
-                    );
-
-                    return response.data;
-                } catch (error) {
-                    console.error('Error dimana lagi ini anjoyyyy', error.message);
-                    throw error;
-                }
-            };
-
-            const shippingData = await getShippingCost();
-
-            // ambil harganya aja
-            const shippingCost = shippingData.rajaongkir.results[0].costs[0].cost[0].value;
-
-            const netPrice = price + shippingCost;
-
-            // Update cart dengan informasi baru
-            const updatedCart = await prisma.cart.update({
-                where: findOneParams,
-                data: {
-                    warehouse_id: warehouseId,
-                    shipping_cost: shippingCost,
-                    total_price: price,
-                    net_price: netPrice,
-                    courier: params.courier,
-                    shipping_method: params.shippingMethod
-                }
-            });
-
-            return updatedCart;
         });
 
         return updatedCart;
+    });
 };
 
+const getShippingCost = async (params) => {
 
+    const { origin_id, destination_id, weight, courier } = params;
 
+    if (!origin_id || !destination_id || !weight || !courier) throw { name: 'invalidInput', message: 'Invalid Input' }
 
-const reset = async (params) => {
-    const { user_id } = params;
-
-    if (!user_id) throw { name: 'invalidInput', message: 'User ID input required' }
-
-    const data = await prisma.cart.findUnique({
+    const origin = await prisma.city.findUnique({
         where: {
-            id: user_id
-        }, include: { cart_items: true }
+            id: +origin_id
+        }
     });
 
-    if (!data) throw { name: 'notFound', name: 'Cart Not Found' }
+    if (!origin) throw { name: 'notFound', message: 'Origin not Found' }
+
+    const destination = await prisma.city.findUnique({
+        where: {
+            id: +destination_id
+        }
+    });
+
+    if (!destination) throw { name: 'notFound', message: 'Destination Not Found' }
+
+    const shippingCostUrl = `${process.env.API_URL_RAJA_ONGKIR}/cost`;
 
 
+    const response = await axios.post(
+        shippingCostUrl,
+        new URLSearchParams({
+            origin: origin.id,
+            destination: destination.id,
+            weight: +weight,
+            courier: courier
+        }),
+        {
+            headers: {
+                'key': process.env.RAJAONGKIR_SECRET_KEY,
+                'content-type': 'application/x-www-form-urlencoded'
+            }
+        }
+    );
+
+    const result = response.data.rajaongkir.results[0].costs.map(item => item);
+
+    return result;
+}
+
+const reset = async (params) => {
+    const cart = await prisma.cart.findUnique({
+        where: {
+            user_id: params.user_id
+        }
+    });
+
+    const cartItems = await prisma.cart_items.findMany({
+        where: {
+            cart_id: cart.id
+        }
+    });
+
+    if (!cartItems || cartItems.length === 0) throw { name: 'notFound', message: 'Cart items to delete not found' }
+
+    const deleteItems = await prisma.cart_items.deleteMany({
+        where: {
+            cart_id: cart.id
+        }
+    });
+
+    const cartReset = await prisma.cart.update({
+        where: {
+            id: cart.id
+        }, data: {
+            warehouse_id: null,
+            shipping_cost: null,
+            total_price: null,
+            net_price: null,
+            shipping_method: null,
+            courier: null
+        }
+    });
 };
 
-//soft delete
-const deleteProduct = (params) => { };
+const deleteProduct = async (params) => {
+    const { user_id, cart_items_id } = params;
 
-module.exports = { findOne, update, reset, deleteProduct };
+    return prisma.$transaction(async (prisma) => {
+        const cartItem = await prisma.cart_items.findUnique({
+            where: { id: cart_items_id },
+            include: { cart: true }
+        });
+
+        if (!cartItem) {
+            throw { name: "notFound", message: "Cart Item Not Found" };
+        }
+
+        if (cartItem.cart.user_id !== user_id) {
+            throw { name: "unauthorized", message: "Unauthorized access to cart item" };
+        }
+
+        await prisma.cart_items.update({
+            where: { id: cart_items_id },
+            data: { quantity: 0 }
+        });
+
+        const updatedCartItems = await prisma.cart_items.findMany({
+            where: {
+                cart_id: cartItem.cart.id,
+                quantity: { not: 0 }
+            }
+        });
+
+        if (updatedCartItems.length === 0) {
+            await prisma.cart.update({
+                where: { id: cartItem.cart.id },
+                data: {
+                    total_price: 0,
+                    net_price: 0,
+                    courier: null,
+                    shipping_method: null,
+                    shipping_cost: 0,
+                    warehouse_id: null
+                }
+            });
+
+            return;
+        }
+
+        const total_price = updatedCartItems.reduce((total, item) => {
+            return total + item.price * item.quantity;
+        }, 0);
+
+        const net_price = total_price + cartItem.cart.shipping_cost;
+
+        const updatedCart = await prisma.cart.update({
+            where: { id: cartItem.cart.id },
+            data: {
+                total_price: total_price,
+                net_price: net_price
+            }
+        });
+
+        return updatedCart;
+    });
+};
+
+
+module.exports = { findOne, update, reset, deleteProduct, getShippingCost };
