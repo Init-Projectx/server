@@ -1,6 +1,5 @@
 const stockService = require('../../services/stockService.js');
 
-
 const addStock = async (req, res, next) => {
     const { productId, warehouseId, quantity } = req.body;
 
@@ -14,6 +13,7 @@ const addStock = async (req, res, next) => {
       next(error);
     }
 }
+
 
 const getStock = async (req, res, next) => {
     const { productId, warehouseId } = req.query;
