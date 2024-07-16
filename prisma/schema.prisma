@@ -161,6 +161,7 @@ model Order_products {
 model Orders {
   id Int @id @default(autoincrement())
   user_id Int
+  address Json?
   warehouse_id Int
   shipping_cost Int
   payment_method String?
