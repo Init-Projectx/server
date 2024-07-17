@@ -1,8 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
+const {authentication} = require('../middlewares/auth');
+
+
+router.use(authentication);
 
 router.get('/', productController.findAll);
-router.get('/:id', productController.findOne);
+router.get('/:slug', productController.findOne);
+router.get('/category/:categoryId', productController.findByCategory);
 
 module.exports = router;
