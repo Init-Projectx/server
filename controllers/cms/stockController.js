@@ -1,6 +1,6 @@
 const stockService = require('../../services/stockService');
 
-const addStock = async (req, res, next) => {
+const addStock = async (req, res, next) => { 
     try {
         const params = { ...req.body }
 

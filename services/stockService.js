@@ -31,9 +31,7 @@ const updateStock = async (params) => {
 
     const existingProduct = await getStock(params);
 
-    console.log(existingProduct.product_id, '<<<<<<<<<<<<<<<<<');
-
-    if (!existingProduct) throw { name: 'notFound', message: 'Product Not Found' }
+    if (!existingProduct) throw { name: 'notFound', message: 'Product Not Found in Warehouse' }
 
     const data = await prisma.product_Warehouse.update({
         where: {

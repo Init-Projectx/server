@@ -6,4 +6,4 @@ router.post('/', stockController.addStock);
 router.put('/:product_id', stockController.updateStock);
 router.get('/:warehouse_id', stockController.getStock);
 
-module.exports = router;
+module.exports = router; 
