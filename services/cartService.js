@@ -6,8 +6,14 @@ dotenv.config();
 
 const findOne = async (params) => {
     const cart = await prisma.cart.findFirst({
-        where: params,
-        include: { cart_items: true }
+        where: {
+            user_id: +params.user
+        },
+        include: {
+            cart_items: {
+                include: { product: true }
+            }
+        }
     });
 
     return cart;
@@ -42,6 +48,14 @@ const update = async (params) => {
                 throw { name: "invalidInput", message: "Quantity must be greater than zero" };
             }
 
+            const product = await prisma.product.findUnique({
+                where: { id: product_id }
+            });
+
+            if (!product) {
+                throw { name: "notFound", message: "Product Not Found" };
+            }
+
             const productWarehouse = await prisma.product_Warehouse.findFirst({
                 where: {
                     product_id: product_id,
@@ -54,14 +68,6 @@ const update = async (params) => {
 
             if (productWarehouse.stock < quantity) {
                 throw { name: "invalidInput", message: "Stock is not enough" };
-            }
-
-            const product = await prisma.product.findUnique({
-                where: { id: product_id }
-            });
-
-            if (!product) {
-                throw { name: "notFound", message: "Product Not Found" };
             }
 
             let cartItem = cart.cart_items.find(item => item.product_id === product_id);
@@ -105,6 +111,10 @@ const update = async (params) => {
                 warehouse_id: warehouse_id,
                 total_price: total_price,
                 net_price: net_price
+            }, include: {
+                cart_items: {
+                    include: { product: true }
+                }
             }
         });
 
@@ -159,100 +169,118 @@ const getShippingCost = async (params) => {
 }
 
 const reset = async (params) => {
-    const cart = await prisma.cart.findUnique({
-        where: {
-            user_id: params.user_id
-        }
-    });
 
-    const cartItems = await prisma.cart_items.findMany({
-        where: {
-            cart_id: cart.id
-        }
-    });
+    await prisma.$transaction(async (prisma) => {
+        const cart = await prisma.cart.findUnique({
+            where: {
+                user_id: params.user_id
+            }
+        });
 
-    if (!cartItems || cartItems.length === 0) throw { name: 'notFound', message: 'Cart items to delete not found' }
+        const cartItems = await prisma.cart_items.findMany({
+            where: {
+                cart_id: cart.id
+            }
+        });
 
-    const deleteItems = await prisma.cart_items.deleteMany({
-        where: {
-            cart_id: cart.id
-        }
-    });
+        if (!cartItems || cartItems.length === 0) throw { name: 'notFound', message: 'Cart items to delete not found' }
 
-    const cartReset = await prisma.cart.update({
-        where: {
-            id: cart.id
-        }, data: {
-            warehouse_id: null,
-            shipping_cost: null,
-            total_price: null,
-            net_price: null,
-            shipping_method: null,
-            courier: null
-        }
-    });
+        const deleteItems = await prisma.cart_items.deleteMany({
+            where: {
+                cart_id: cart.id
+            }
+        });
+
+        const cartReset = await prisma.cart.update({
+            where: {
+                id: cart.id
+            }, data: {
+                warehouse_id: null,
+                shipping_cost: null,
+                total_price: null,
+                net_price: null,
+                shipping_method: null,
+                courier: null
+            }
+        });
+    })
 };
 
 const deleteProduct = async (params) => {
-    const { user_id, cart_items_id } = params;
+    const { user_id, product_id } = params;
 
     return prisma.$transaction(async (prisma) => {
-        const cartItem = await prisma.cart_items.findUnique({
-            where: { id: cart_items_id },
-            include: { cart: true }
+        const cart = await prisma.cart.findUnique({
+            where: {
+                user_id: +user_id
+            }
         });
 
-        if (!cartItem) {
-            throw { name: "notFound", message: "Cart Item Not Found" };
-        }
+        const cartItem = await prisma.cart_items.findFirst({
+            where: {
+                product_id: +product_id
+            }
+        });
 
-        if (cartItem.cart.user_id !== user_id) {
-            throw { name: "unauthorized", message: "Unauthorized access to cart item" };
-        }
+        if (!cartItem) throw { name: 'notFound', message: 'Cart items not found' }
 
-        await prisma.cart_items.update({
-            where: { id: cart_items_id },
-            data: { quantity: 0 }
+        const cartItems = await prisma.cart_items.delete({
+            where: {
+                id: cartItem.id
+            }
         });
 
         const updatedCartItems = await prisma.cart_items.findMany({
             where: {
-                cart_id: cartItem.cart.id,
-                quantity: { not: 0 }
+                cart_id: +cart.id
             }
         });
 
         if (updatedCartItems.length === 0) {
-            await prisma.cart.update({
-                where: { id: cartItem.cart.id },
-                data: {
-                    total_price: 0,
-                    net_price: 0,
-                    courier: null,
+            const updatedCart = await prisma.cart.update({
+                where: {
+                    user_id: +user_id
+                }, data: {
+                    warehouse_id: null,
+                    shipping_cost: null,
+                    total_price: null,
+                    net_price: null,
                     shipping_method: null,
-                    shipping_cost: 0,
-                    warehouse_id: null
+                    courier: null
+                }
+            });
+        } else {
+
+            const updatedCart = await prisma.cart.findUnique({
+                where: {
+                    user_id: user_id
+                }, include: {
+                    cart_items: {
+                        include: { product: true }
+                    }
                 }
             });
 
-            return;
+            const total_price = updatedCart.cart_items.reduce((total, item) => {
+                return total + item.price * item.quantity;
+            }, 0);
+
+            const newCart = await prisma.cart.update({
+                where: {
+                    id: +cart.id
+                },
+                data: {
+                    total_price: total_price,
+                    net_price: null,
+                    shipping_cost: null,
+                    shipping_method: null
+                }, include: {
+                    cart_items: {
+                        include: { product: true }
+                    }
+                }
+            });
         }
-
-        const total_price = updatedCartItems.reduce((total, item) => {
-            return total + item.price * item.quantity;
-        }, 0);
-
-        const net_price = total_price + cartItem.cart.shipping_cost;
-
-        const updatedCart = await prisma.cart.update({
-            where: { id: cartItem.cart.id },
-            data: {
-                total_price: total_price,
-                net_price: net_price
-            }
-        });
-
-        return updatedCart;
     });
 };
 

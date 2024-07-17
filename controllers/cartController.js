@@ -5,7 +5,7 @@ const findOne = async (req, res, next) => {
     try {
         const params = {
             id: +req.params.id,
-            user_id: +req.loggedUser.id
+            user: req.loggedUser.id
         }
 
         const data = await cartService.findOne(params);
@@ -25,8 +25,6 @@ const update = async (req, res, next) => {
             user_id: req.loggedUser.id,
             ...req.body
         }
-
-        console.log('<<<<<<<<<<<<<<<<<<', params);
 
         const data = await cartService.update(params);
 
@@ -60,7 +58,7 @@ const deleteProduct = async (req, res, next) => {
     try {
         const params = {
             user_id: req.loggedUser.id,
-            cart_items_id: +req.params.cart_items_id
+            product_id: req.params.product_id
         }
 
         const data = await cartService.deleteProduct(params);
