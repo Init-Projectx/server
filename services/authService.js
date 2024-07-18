@@ -2,6 +2,8 @@ const prisma = require('../lib/prisma');
 const { hashPassword, comparePassword } = require('../lib/bcrypt');
 const { generateToken } = require('../lib/jwt');
 
+//login register perlu di handle error seperti null dsb
+
 const register = async (params) => {
     const { username, email, password } = params;
 

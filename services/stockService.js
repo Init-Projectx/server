@@ -1,64 +1,66 @@
 const prisma = require("../lib/prisma");
 
 
-const addStock = async (productId, warehouseId, quantity) => {
-  // Check if the product exists
-  const product = await prisma.product.findUnique({
-    where: {
-      id: productId,
-    },
-  });
-
-  if (!product) {
-    throw { name: 'notFound', message: 'product not found' };
-  }
-
-  // Check if stock already exists for this product and warehouse
-  const existingStock = await prisma.product_Warehouse.findUnique({
-    where: {
-      product_id_warehouse_id: {
-        product_id: productId,
-        warehouse_id: warehouseId,
-      },
-    },
-  });
-
-  if (existingStock) {
-    // Update existing stock
-    return await prisma.product_Warehouse.update({
-      where: {
-        id: existingStock.id,
-      },
-      data: {
-        stock: existingStock.stock + quantity,
-      },
+const addStock = async (params) => {
+    const existingProduct = await prisma.product_Warehouse.findFirst({
+        where: {
+            AND: [
+                { product_id: params.product_id },
+                { warehouse_id: params.warehouse_id }
+            ]
+        }
     });
-  } else {
-    // Create new stock entry
-    return await prisma.product_Warehouse.create({
-      data: {
-        product_id: productId,
-        warehouse_id: warehouseId,
-        stock: quantity,
-      },
+
+    if (existingProduct) throw { name: 'exist', message: 'Product already exist, you can update product stock' }
+
+    const data = await prisma.product_Warehouse.create({
+        data: {
+            product_id: params.product_id,
+            warehouse_id: params.warehouse_id,
+            stock: params.stock
+        }
     });
-  }
+
+    return data;
+};
+
+const updateStock = async (params) => {
+    const product = {
+        product_id: params.product_id,
+        warehouse_id: params.warehouse_id
+    };
+
+    const existingProduct = await getStock(params);
+
+    if (!existingProduct) throw { name: 'notFound', message: 'Product Not Found in Warehouse' }
+
+    const data = await prisma.product_Warehouse.update({
+        where: {
+            id: existingProduct.id
+        }, data: {
+            stock: params.stock
+        }
+    });
+
+    if (!data) throw { name: 'notFound', message: 'Product Not Found in the specified Warehouse' }
+
+    return data;
 };
 
 
-const getStock = async (productId, warehouseId) => {
-    try {
-        return await prisma.product_Warehouse.findUnique({
-          where: {
-            product_id_warehouse_id: {
-              product_id: productId,
-              warehouse_id: warehouseId
-            }
-          }
-        });
-      } catch (error) {
-        throw new Error(`Error fetching stock: ${error.message}`);
-      }
+const getStock = async (params) => {
+    const data = await prisma.product_Warehouse.findFirst({
+        where: {
+            AND: [
+                { warehouse_id: +params.warehouse_id },
+                { product_id: params.product_id }
+            ]
+        }
+    });
+
+    if (!data) throw { name: 'notFound', message: 'Error not found' };
+
+    return data;
 };
 
-module.exports = { addStock, getStock };
+module.exports = { addStock, getStock, updateStock };
