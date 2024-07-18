@@ -124,6 +124,7 @@ model Cart {
   net_price Int?
   shipping_method String?
   courier String?
+  total_weight Int?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
@@ -162,14 +163,15 @@ model Orders {
   id Int @id @default(autoincrement())
   user_id Int
   address Json?
-  warehouse_id Int
-  shipping_cost Int
+  warehouse_id Int?
+  shipping_cost Int?
   payment_method String?
   bank_name String?
   proof_of_payment String?
-  total_price Int
+  total_price Int?
   midtrans_data Json?
-  net_price Int
+  net_price Int?
+  total_weight Int?
   shipping_method String?
   courier String?
   status OrderStatus
