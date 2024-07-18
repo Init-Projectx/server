@@ -1,34 +1,3 @@
-<<<<<<< Updated upstream
-// controllers/adminOrderController.js
-const orderService = require('../services/orderService');
-=======
-<<<<<<< Updated upstream
-const findAll = async (req, res, next) => {}
->>>>>>> Stashed changes
-
-const findAll = async (req, res, next) => {
-  try {
-    const orders = await orderService.findAll({});
-    res.status(200).json(orders);
-  } catch (error) {
-    next(error);
-  }
-};
-
-<<<<<<< Updated upstream
-const findOne = async (req, res, next) => {
-  const { id } = req.params;
-  try {
-    const order = await orderService.findOne({ where: { id: parseInt(id, 10) } });
-    if (order) {
-      res.status(200).json(order);
-    } else {
-      res.status(404).json({ message: 'Order not found' });
-    }
-=======
-const updateStatus = async (req, res, next) => {}
-=======
-// controllers/adminOrderController.js
 const orderService = require('../../services/orderService');
 
 const findAll = async (req, res, next) => {
@@ -39,13 +8,10 @@ const findAll = async (req, res, next) => {
       message: 'Get all orders success',
       data: data
     });
->>>>>>> Stashed changes
   } catch (error) {
     next(error);
   }
 };
-<<<<<<< Updated upstream
-=======
 
 const findOne = async (req, res, next) => {
   try {
@@ -64,15 +30,21 @@ const findOne = async (req, res, next) => {
     next(error);
   }
 };
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 
 const updateStatus = async (req, res, next) => {
-  const { id } = req.params;
-  const { status } = req.body;
   try {
-    const updatedOrder = await orderService.updateStatus(parseInt(id, 10), status);
-    res.status(200).json(updatedOrder);
+    const params = {
+      id: req.params.id,
+      user: req.loggedUser,
+      status: req.body
+    }
+
+    const data = await orderService.updateStatus(params);
+
+    res.status(200).json({
+      message: 'Update status success',
+      data: data
+    });
   } catch (error) {
     next(error);
   }

@@ -34,133 +34,128 @@ const findOne = async (params) => {
 };
 
 const createOrder = async (params) => {
-  const { userId, address, paymentMethod, bankName, proofOfPayment } = params;
+  const { address, paymentMethod, proofOfPayment, bankName, warehouse_id, shipping_cost, shipping_method, courier, order_items_attributes, user_id } = params;
 
+  if (!address || address === null) throw { name: 'invalidInput', message: 'Address Required' }
 
-  //data cart di kirim fe
-  //
+  if (order_items_attributes.quantity >= 0) throw { name: 'invalidInput', message: 'Invalid input quantity' }
 
-  if (!userId || !address || !paymentMethod || !bankName || !proofOfPayment) {
-    throw { name: 'invalidInput', message: 'Invalid input to create order' };
-  }
-
-  const cart = await prisma.cart.findUnique({
-    where: {
-      user_id: +userId,
-    },
-    include: { cart_items: true },
-  });
-
-  if (!cart || cart.cart_items.length === 0) {
-    throw { name: 'notFound', message: 'User Cart Not Found or Empty' };
-  }
-
-  for (const item of cart.cart_items) {
-    const productWarehouse = await prisma.product_Warehouse.findFirst({
+  return await prisma.$transaction(async (prisma) => {
+    const products = await prisma.product.findMany({
       where: {
-        product_id: +item.product_id,
+        id: {
+          in: order_items_attributes.map(item => item.product_id),
+        },
+      },
+      select: {
+        id: true,
+        price: true,
+        weight: true,
       },
     });
 
-    if (!productWarehouse) {
-      throw { name: 'notFound', message: 'Product Not Found' };
+    let total_price = 0;
+    let total_weight = 0;
+
+    for (const item of order_items_attributes) {
+      const product = products.find(p => p.id === item.product_id);
+
+      if (!product) {
+        throw { name: 'notFound', message: 'Product not found' };
+      }
+
+      total_price += product.price * item.quantity;
+      total_weight += product.weight * item.quantity;
+
+      const productStock = await prisma.product_Warehouse.findFirst({
+        where: {
+          product_id: +item.product_id,
+          warehouse_id,
+        },
+      });
+
+      if (!productStock) throw { name: 'notFound', message: 'Stock Product Not Found' }
+
+      if (productStock.stock < item.quantity) {
+        throw { name: 'invalidInput', message: 'Stock not enough' }
+      }
     }
 
-    if (productWarehouse.stock < item.quantity) {
-      throw { name: 'invalidInput', message: 'Stock product not enough' };
-    }
-  }
+    const net_price = total_price + shipping_cost;
 
-
-  //semuanya di kalkulasi ulang dan juga validasi netprice
-  const totalPrice = cart.total_price;
-  const warehouseId = cart.warehouse_id;
-  const shippingMethod = cart.shipping_method;
-  const shippingCost = cart.shipping_cost;
-  const netPrice = cart.net_price;
-  const courier = cart.courier;
-
-  if (!totalPrice || !warehouseId || !shippingCost || !shippingMethod || !netPrice || !courier) {
-    throw { name: 'invalidInput', message: 'Invalid Input to create order' };
-  }
-
-  const newOrder = await prisma.$transaction(async (prisma) => {
-    const order = await prisma.orders.create({
+    const newOrder = await prisma.orders.create({
       data: {
-        user_id: +userId,
+        user_id: user_id,
         address: address,
-        warehouse_id: warehouseId,
-        shipping_cost: shippingCost,
+        warehouse_id: warehouse_id,
+        shipping_cost: shipping_cost,
         payment_method: paymentMethod,
         bank_name: bankName,
         proof_of_payment: proofOfPayment,
-        total_price: totalPrice,
-        net_price: netPrice,
-        shipping_method: shippingMethod,
+        shipping_method: shipping_method,
         courier: courier,
         status: 'pending',
-      },
+      }, include: { order_products: true }
     });
 
-    const createOrderProductsPromises = cart.cart_items.map(async (item) => {
-      const orderProducts = await prisma.order_products.create({
-        data: {
-          product_id: +item.product_id,
-          order_id: order.id,
-          quantity: item.quantity,
-          price: item.price,
-        },
-      });
+    const orderProducts = order_items_attributes.map((item) => ({
+      product_id: item.product_id,
+      order_id: newOrder.id,
+      quantity: item.quantity,
+      price: products.find(p => p.id === item.product_id).price,
+    }));
 
-      if (!orderProducts) {
-        throw { name: 'failedToCreate', message: 'Failed to create order products' };
-      }
-
-      const productWarehouse = await prisma.product_Warehouse.findFirst({
-        where: {
-          product_id: +item.product_id
-        }
-      });
-
-      const updateStockWarehouse = await prisma.product_Warehouse.update({
-        where: {
-          id: productWarehouse.id
-        },
-        data: {
-          stock: { decrement: 1 }
-        }
-      });
-
-      if (!updateStockWarehouse) {
-        throw { name: 'failedToUpdateStock', message: 'Failed to update stock' };
-      }
+    const productOrder = await prisma.order_products.createMany({
+      data: orderProducts,
     });
 
-    await Promise.all(createOrderProductsPromises);
+    for (const item of order_items_attributes) {
+      const productWarehouse = await prisma.product_Warehouse.updateMany({
+        where: {
+          product_id: item.product_id,
+          warehouse_id,
+        },
+        data: {
+          stock: {
+            decrement: item.quantity,
+          },
+        },
+      });
+    }
 
-    const updatedCartItems = await prisma.cart_items.deleteMany({
+    const updatedOrder = await prisma.orders.update({
       where: {
-        cart_id: cart.id,
-      },
+        id: newOrder.id
+      }, data: {
+        total_price: total_price,
+        total_weight: total_weight,
+        net_price: net_price
+      }, include: { order_products: true }
     });
 
-    return order;
+    return updatedOrder;
   });
-
-  return newOrder;
 };
 
 const updateStatus = async (params) => {
-  const { id } = params;
+  if (!params.id) throw { name: 'invalidInput', message: 'Params order id required' }
 
-  if (!id) throw { name: 'invalidInput', message: 'Params order id required' }
+  const existingOrder = await prisma.orders.findUnique({
+    where: {
+      id: +params.id
+    }
+  });
+
+  if (!existingOrder) throw { name: 'notFound', message: 'Order Not Found' }
+
+  if (params.user.role == 'user') {
+    if (params.user.id !== existingOrder.user_id) throw { name: 'Unauthorized', message: 'You dont have authorization' }
+  }
 
   const data = await prisma.orders.update({
     where: {
-      id: id
-    }, data: {
-      status: 'processed'
-    }
+      id: +params.id
+    }, data: params.status
   });
 
   if (!data) throw { name: 'notFound', message: 'Order not found' };
@@ -171,7 +166,7 @@ const updateStatus = async (params) => {
 const payment = async (params) => {
   const { orderId, user } = params;
 
-  const generateOrderId = `MNMR-${Math.floor(Math.random() * 2123351678119769)}-TRX`;
+  const generateOrderId = `MNMR-${Math.floor(Math.random() * 2123351678119769)}-${orderId}-TRX`;
 
   const order = await prisma.orders.findUnique({
     where: {
@@ -218,7 +213,6 @@ const payment = async (params) => {
 
   return null;
 };
-
 
 const handleNotification = async (notification) => {};
 
