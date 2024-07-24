@@ -91,6 +91,30 @@ const payment = async (req, res, next) => {
   }
 };
 
+// const midtransData = async (req, res, next) => {
+//   try {
+//     const data = {
+//       order_id: req.query.order_id,
+//       transaction_status: req.query.transaction_status,
+//       status_code: req.query.status_code,
+//     };
+
+//     if (!data.order_id || !data.transaction_status) {
+//       return res.status(400).json({ message: 'Missing order_id or transaction_status in query parameters' });
+//     }
+
+//     const updatedOrder = await orderService.midtransPayment(data);
+
+//     res.status(200).json({
+//       message: 'Payment data processed successfully',
+//       data: updatedOrder,
+//     });
+//   } catch (error) {
+//     console.error('Error processing payment data:', error);
+//     next(error);
+//   }
+// };
+
 const handleNotification = async (req, res, next) => {
   try {
     await orderService.handleNotification(req.body);

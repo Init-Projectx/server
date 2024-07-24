@@ -9,7 +9,11 @@ const findAll = async (params = {}) => {
 
   const data = await prisma.orders.findMany({
     where: params,
-    include: { order_products: true }
+    include: {
+      order_products: {
+        include: { product: true }
+      }
+    }
   });
 
   return data;
@@ -148,10 +152,6 @@ const updateStatus = async (params) => {
 
   if (!existingOrder) throw { name: 'notFound', message: 'Order Not Found' }
 
-  if (params.user.role == 'user') {
-    if (params.user.id !== existingOrder.user_id) throw { name: 'Unauthorized', message: 'You dont have authorization' }
-  }
-
   const data = await prisma.orders.update({
     where: {
       id: +params.id
@@ -166,7 +166,7 @@ const updateStatus = async (params) => {
 const payment = async (params) => {
   const { orderId, user } = params;
 
-  const generateOrderId = `MNMR-${Math.floor(Math.random() * 2123351678119769)}-${orderId}-TRX`;
+  const generateOrderId = orderId;
 
   const order = await prisma.orders.findUnique({
     where: {
@@ -179,9 +179,9 @@ const payment = async (params) => {
     throw { name: 'notFound', message: 'Order Not Found' };
   }
 
-  if (user.role === 'user' && user.id !== order.user_id) {
-    throw { name: 'Unauthorized', message: 'You dont have authorization' };
-  }
+  // if (user.role === 'user' && user.id !== order.user_id) {
+  //   throw { name: 'Unauthorized', message: 'You dont have authorization' };
+  // }
 
   for (const item of order.order_products) {
     const product = await prisma.product.findUnique({
@@ -214,6 +214,37 @@ const payment = async (params) => {
   return null;
 };
 
-const handleNotification = async (notification) => {};
+const midtransPayment = async (data) => {
+  if (!data.order_id || !data.transaction_status) {
+    throw new Error('Invalid data received from Midtrans');
+  }
 
-module.exports = { createOrder, findAll, findOne, updateStatus, payment, handleNotification };
+  let newStatus = 'pending';
+  let proofOfPayment = null;
+
+  if (data.transaction_status === 'settlement') {
+    newStatus = 'processed';
+    proofOfPayment = 'payment success';
+  } else if (data.transaction_status === 'deny') {
+    newStatus = 'cancelled';
+    proofOfPayment = 'payment failed';
+  } else if (data.transaction_status === 'pending') {
+    newStatus = 'pending';
+    proofOfPayment = 'waiting payment';
+  }
+
+  const order = await prisma.orders.update({
+    where: { id: +data.order_id },
+    data: {
+      midtrans_data: data,
+      status: newStatus,
+      proof_of_payment: proofOfPayment,
+    },
+  });
+
+  return order;
+};
+
+const handleNotification = async (notification) => { };
+
+module.exports = { createOrder, findAll, findOne, updateStatus, payment, handleNotification, midtransPayment };

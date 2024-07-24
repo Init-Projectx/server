@@ -3,32 +3,28 @@ const generateSlug = require("../lib/slug");
 const multer = require("multer");
 
 const findAll = async (params, isAdmin = false) => {
-  const { page = 1, limit = 10 } = params;
-  const skip = (page - 1) * limit;
-  const where = isAdmin ? {} : { status: "active" };
+  // const { page = 1, limit = 20} = params;
+  // const skip = (page - 1) * limit;
+  // const where = isAdmin ? {} : { status: "active" };
 
-  const totalItems = await prisma.product.count({ where });
-  const products = await prisma.product.findMany({
-    skip,
-    take: limit,
-    where,
-  });
+  // const totalItems = await prisma.product.count({ where });
+  const products = await prisma.product.findMany();
 
   if (!products || products === null) {
     throw { name: "notFound", message: "Failed to get data products" };
   }
 
-  return {
-    totalItems,
-    totalPages: Math.ceil(totalItems / limit),
-    currentPage: page,
-    products,
-  };
+  return products;
 };
 
 const findOne = async (slug, isAdmin = false) => {
   const where = isAdmin ? { slug } : { slug, status: "active" };
-  const product = await prisma.product.findUnique({ where });
+  const product = await prisma.product.findUnique({
+    where,
+    include: {
+      Product_Warehouses: true
+    }
+  });
 
   if (!product) {
     throw { name: "notFound", message: "Product not found" };
