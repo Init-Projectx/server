@@ -30,13 +30,17 @@ const findAll = async (params) => {
 
     if (!data) throw { name: 'notFound', message: 'Failed to Get All City Data' };
 
+    const totalPage = Math.ceil(totalCities / pageSize);
+
     return {
         data: data,
         meta: {
             total: totalCities,
             page: page,
             pageSize: pageSize,
-            totalPages: Math.ceil(totalCities / pageSize)
+            totalPages: Math.ceil(totalCities / pageSize),
+            next: page < totalPage,
+            previous: page > 1
         }
     };
 };

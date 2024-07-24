@@ -11,6 +11,9 @@ const warehouseRouter = require('./warehouseRoute');
 const userRouter = require('./userRoute');
 const orderController = require('../controllers/orderController');
 const authRouter = require('./authRoute');
+const midtransRouter = require('./midtrans');
+
+router.use('/v1/api/payment', midtransRouter)
 
 //upload photo user
 router.use('/assets/profile/picture', express.static(path.join(__dirname, '../assets/users')));
