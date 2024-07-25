@@ -7,6 +7,7 @@ const login = async (req, res, next) => {
             password: req.body.password,
             role: 'admin'
         }
+
         const data = await authService.login(params);
 
         res.status(200).json({
