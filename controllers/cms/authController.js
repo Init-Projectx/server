@@ -2,7 +2,12 @@ const authService = require('../../services/authService')
 
 const login = async (req, res, next) => {
     try {
-        const params = { ...req.body }
+        const params = {
+            email: req.body.email,
+            password: req.body.password,
+            role: 'admin'
+        }
+
         const data = await authService.login(params);
 
         res.status(200).json({

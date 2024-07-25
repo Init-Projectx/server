@@ -15,6 +15,8 @@ const midtransRouter = require('./midtrans');
 
 router.use('/v1/api/payment', midtransRouter)
 
+router.use('/v1/api/products', productRouter);
+
 //upload photo user
 router.use('/assets/profile/picture', express.static(path.join(__dirname, '../assets/users')));
 router.use('/assets/products', express.static(path.join(__dirname, '../assets/products')));
@@ -34,7 +36,7 @@ const cmsWarehouseRouter = require('./cms/warehouseRoute');
 
 // cms
 router.use('/v1/api/cms/auth', cmsAuthRouter);
-router.use('/v1/api/products', productRouter);
+// router.use('/v1/api/products', productRouter);
 router.post('/v1/api/orders/handle_notification/:id', orderController.handleNotification);
 
 router.use(authentication);
