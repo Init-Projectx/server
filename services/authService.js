@@ -43,12 +43,19 @@ const register = async (params) => {
         }
     });
 
-    return data;
+
+    const accessToken = generateToken({
+        id: data.id,
+        email: data.email,
+        role: data.role
+    });
+
+    return accessToken;
 }
 
 
 const login = async (params) => {
-    const { email, password } = params;
+    const { email, password, role } = params;
 
     if (email === null || password === null) throw { name: 'invalidInput', message: 'invalidInput' }
 
@@ -58,15 +65,20 @@ const login = async (params) => {
         }
     });
 
-    if (!foundUser) throw { name: 'invalidCredentials', message: 'Invalid Credentials' }
+    if (!foundUser) throw { name: 'invalidCredentials', message: 'Account not found' }
 
     const matchPassword = await comparePassword(password, foundUser.password);
 
     if (!matchPassword) throw { name: 'invalidCredentials', message: 'Invalid Credentials' }
 
+    if (role && foundUser.role !== 'admin') {
+        throw { name: 'invalidCredentials', message: 'You dont have authorization' }
+    }
+
     const accessToken = generateToken({
         id: foundUser.id,
-        email: foundUser.email
+        email: foundUser.email,
+        role: foundUser.role
     });
 
     return accessToken;

@@ -229,7 +229,7 @@ const midtransPayment = async (data) => {
     newStatus = 'cancelled';
     proofOfPayment = 'payment failed';
   } else if (data.transaction_status === 'pending') {
-    newStatus = 'pending';
+    newStatus = 'processed';
     proofOfPayment = 'waiting payment';
   }
 
