@@ -2,7 +2,8 @@ const prisma = require('../lib/prisma');
 
 const findOne = async (params) => {
     const data = await prisma.warehouse.findFirst({
-        where: params
+        where: params,
+        include: {city: true}
     });
 
     if (!data) throw { name: 'notFound', message: 'Warehouse Not Found' }

@@ -14,7 +14,7 @@ router.put('/:slug', upload, (req, res, next) => {
     req.err = req.err || null;
     next();
 }, productController.update);
-router.delete('/:slug', productController.softDelete);
-router.put('/return/:slug', productController.returnSoftDelete);
+router.put('/delete/:slug', productController.softDelete);
+router.put('/activated/:slug', productController.returnSoftDelete);
 
 module.exports = router;

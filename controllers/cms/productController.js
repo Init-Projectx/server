@@ -4,8 +4,8 @@ const ProductService = require('../../services/productService');
 const findAll = async (req, res, next) => {
     try {
         let { page = 1, limit = 10 } = req.query;
-        page = +page; 
-        limit = +limit; 
+        page = +page;
+        limit = +limit;
 
         const products = await ProductService.findAll({ page, limit }, true);
         res.status(200).json({
@@ -25,9 +25,9 @@ const findOne = async (req, res, next) => {
             message: 'success get one data',
             data: product
         });
-      } catch (error) {
+    } catch (error) {
         next(error)
-      }
+    }
 };
 
 
@@ -70,7 +70,6 @@ const update = async (req, res, next) => {
 };
 
 
-// soft delete
 const softDelete = async (req, res, next) => {
     try {
         const { slug } = req.params;
@@ -85,18 +84,18 @@ const softDelete = async (req, res, next) => {
 };
 
 
-const returnSoftDelete = async(req, res, next) => {
-    try{
+const returnSoftDelete = async (req, res, next) => {
+    try {
         const { slug } = req.params;
         const returnProduct = await ProductService.returnSoftDelete(slug);
         res.status(200).json({
             message: 'return product success',
             data: returnProduct
         });
-    }catch(error){
+    } catch (error) {
         next(error);
     }
 }
 
 
-module.exports = {findAll, findOne, findByCategory, create, update, softDelete, returnSoftDelete};
+module.exports = { findAll, findOne, findByCategory, create, update, softDelete, returnSoftDelete };

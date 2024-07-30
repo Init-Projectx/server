@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 // Konfigurasi untuk menyimpan file upload
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, '../assets/products')); // Sesuaikan dengan lokasi penyimpanan file Anda
+        cb(null, path.join(__dirname, '../assets/products')); 
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = `${uuidv4()}-${path.extname(file.originalname)}`;
@@ -14,4 +14,4 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-module.exports = upload.single('photo'); // Ekspor fungsi langsung
+module.exports = upload.single('photo'); 
