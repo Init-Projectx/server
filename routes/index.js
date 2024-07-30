@@ -14,6 +14,7 @@ const authRouter = require('./authRoute');
 const midtransRouter = require('./midtrans');
 
 router.use('/v1/api/payment', midtransRouter)
+
 router.use('/v1/api/products', productRouter);
 
 //upload photo user
