@@ -8,7 +8,13 @@ const findAll = async (params, isAdmin = false) => {
   // const where = isAdmin ? {} : { status: "active" };
 
   // const totalItems = await prisma.product.count({ where });
-  const products = await prisma.product.findMany();
+  const products = await prisma.product.findMany({
+    include: {
+      Product_Warehouses: {
+        include: { warehouse: true }
+      }
+    }
+  });
 
   if (!products || products === null) {
     throw { name: "notFound", message: "Failed to get data products" };
@@ -22,7 +28,9 @@ const findOne = async (slug, isAdmin = false) => {
   const product = await prisma.product.findUnique({
     where,
     include: {
-      Product_Warehouses: true
+      Product_Warehouses: {
+        include: { warehouse: true }
+      }
     }
   });
 
@@ -38,6 +46,10 @@ const findByCategory = async (categoryId) => {
     where: {
       category_id: parseInt(categoryId),
       status: "active",
+    }, include: {
+      Product_Warehouses: {
+        include: { warehouse: true }
+      }
     },
     orderBy: {
       name: "asc",
@@ -114,7 +126,7 @@ const update = async (slug, data, file, err) => {
         data.category_id !== undefined
           ? parseInt(data.category_id)
           : existingProduct.category_id,
-      photo: file ? `../assets/products${file.filename}` : existingProduct.photo,
+      photo: file ? `http://localhost:8080/assets/products/${file.filename}` : existingProduct.photo,
     },
   });
 
@@ -145,7 +157,7 @@ const softDelete = async (slug) => {
   const updatedProduct = await prisma.product.update({
     where: { slug },
     data: {
-      status: "inactive", // Mengubah status menjadi inactive
+      status: "inactive",
     },
   });
 
