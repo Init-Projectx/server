@@ -33,4 +33,15 @@ const findOne = async (req, res, next) => {
     }
 }
 
-module.exports = { findAll, findOne };
+const searchCities = async (req, res, next) => {
+    try {
+        const params = req.query;
+        const data = await cityService.searchCities(params);
+
+        res.status(200).json(data);
+    } catch (error) {
+        next(error)
+    }
+}
+
+module.exports = { findAll, findOne, searchCities };
