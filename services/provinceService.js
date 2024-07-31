@@ -23,4 +23,18 @@ const findAll = async () => {
     return data;
 };
 
-module.exports = { findOne, findAll };
+const searchProvince = async (params) => {
+    const { query } = params;
+    const data = await prisma.province.findMany({
+        where: {
+            name: {
+                startsWith: query,
+                mode: 'insensitive'
+            }
+        }, take: 10
+    });
+
+    return data
+}
+
+module.exports = { findOne, findAll, searchProvince };

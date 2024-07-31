@@ -45,5 +45,18 @@ const findAll = async (params) => {
     };
 };
 
+const searchCities = async (params) => {
+    const {query} = params;
+    const data = await prisma.city.findMany({
+        where: {
+            name: {
+                startsWith: query,
+                mode: 'insensitive'
+            }
+        }, take: 10
+    });
 
-module.exports = { findOne, findAll };
+    return data
+} 
+
+module.exports = { findOne, findAll, searchCities };
