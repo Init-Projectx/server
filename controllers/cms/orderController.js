@@ -36,7 +36,7 @@ const updateStatus = async (req, res, next) => {
     const params = {
       id: req.params.id,
       user: req.loggedUser,
-      status: req.body
+      data: { ...req.body }
     }
 
     const data = await orderService.updateStatus(params);
