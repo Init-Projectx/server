@@ -155,7 +155,7 @@ const updateStatus = async (params) => {
   const data = await prisma.orders.update({
     where: {
       id: +params.id
-    }, data: params.status
+    }, data: params.data
   });
 
   if (!data) throw { name: 'notFound', message: 'Order not found' };
