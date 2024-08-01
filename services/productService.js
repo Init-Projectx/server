@@ -82,7 +82,7 @@ const create = async (data, file, err) => {
       status: data.status,
       category_id: parseInt(data.category_id),
       slug: slug,
-      photo: file ? `../assets/products${file.filename}` : null,
+      photo: file ? `http://localhost:8080/assets/products/${file.filename}` : null,
     },
   });
 
