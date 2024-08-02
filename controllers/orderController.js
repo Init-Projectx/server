@@ -117,8 +117,13 @@ const payment = async (req, res, next) => {
 
 const handleNotification = async (req, res, next) => {
   try {
-    await orderService.handleNotification(req.body);
-    res.status(200).json({ message: 'Notification handled' });
+    const { to } = req.body; 
+    const data = await orderService.handleNotification(to);
+
+    res.status(200).json({
+      message: 'Notification email sent successfully',
+      data: data
+    });
   } catch (error) {
     next(error);
   }

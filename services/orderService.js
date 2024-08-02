@@ -1,6 +1,7 @@
 const prisma = require("../lib/prisma");
 const dotenv = require('dotenv')
 const midtrans = require('midtrans-client');
+const { sendEmail } = require("../lib/nodemailer");
 
 dotenv.config();
 
@@ -245,6 +246,13 @@ const midtransPayment = async (data) => {
   return order;
 };
 
-const handleNotification = async (notification) => { };
+const handleNotification = async (params) => {
+
+  const email = await sendEmail(params);
+
+  if (!email) throw { name: 'notFound', message: 'Failed to send email' }
+
+  return email;
+};
 
 module.exports = { createOrder, findAll, findOne, updateStatus, payment, handleNotification, midtransPayment };
