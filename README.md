@@ -41,11 +41,11 @@ Make sure you have the following installed:
 5. **Start the server:**
 
     npm run dev
-    or
+    # or
     yarn dev
-    or
+    # or
     pnpm dev
-    or
+    # or
     bun dev
 
 ### Using Docker
