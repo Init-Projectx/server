@@ -16,6 +16,7 @@ const midtransRouter = require('./midtrans');
 router.use('/v1/api/payment', midtransRouter)
 
 router.use('/v1/api/products', productRouter);
+router.use('/v1/api/categories', categoryRouter);
 
 //upload photo user
 router.use('/assets/profile/picture', express.static(path.join(__dirname, '../assets/users')));
@@ -49,7 +50,6 @@ router.use('/v1/api/cms/warehouses', authorization, cmsWarehouseRouter);
 
 
 router.use('/v1/api/carts', cartRouter);
-router.use('/v1/api/categories', categoryRouter);
 router.use('/v1/api/cities', cityRouter);
 router.use('/v1/api/orders', orderRouter);
 router.use('/v1/api/provinces', provinceRouter);

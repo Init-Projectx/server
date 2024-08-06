@@ -25,7 +25,7 @@ const findOne = async (params) => {
 
   const data = await prisma.orders.findUnique({
     where: {
-      id: +params.id
+      id: params.id
     }, include: { order_products: true }
   });
 
@@ -147,7 +147,7 @@ const updateStatus = async (params) => {
 
   const existingOrder = await prisma.orders.findUnique({
     where: {
-      id: +params.id
+      id: params.id
     }
   });
 
@@ -155,7 +155,7 @@ const updateStatus = async (params) => {
 
   const data = await prisma.orders.update({
     where: {
-      id: +params.id
+      id: params.id
     }, data: params.data
   });
 
@@ -171,7 +171,7 @@ const payment = async (params) => {
 
   const order = await prisma.orders.findUnique({
     where: {
-      id: +orderId
+      id: orderId
     },
     include: { order_products: true }
   });
@@ -235,7 +235,7 @@ const midtransPayment = async (data) => {
   }
 
   const order = await prisma.orders.update({
-    where: { id: +data.order_id },
+    where: { id: data.order_id },
     data: {
       midtrans_data: data,
       status: newStatus,
