@@ -7,9 +7,9 @@ const { generateToken } = require('../lib/jwt');
 const register = async (params) => {
     const { username, email, password } = params;
 
-    if (username === null || email === null || password === null) throw { name: 'invalidInput', message: 'Invalid Input' }
+    if (username === "" || email === "" || password === "") throw { name: 'invalidInput', message: 'Invalid Input' }
 
-    if (password.length <= 7) throw { name: 'invalidInput', message: 'Password To Short' }
+    if (password.length <= 7) throw { name: 'invalidInput', message: 'Password To Short, minimum length is 7 character' }
 
     const encryptPassword = await hashPassword(password);
 
@@ -57,7 +57,7 @@ const register = async (params) => {
 const login = async (params) => {
     const { email, password, role } = params;
 
-    if (email === null || password === null) throw { name: 'invalidInput', message: 'invalidInput' }
+    if (email === null || password === null) throw { name: 'invalidInput', message: 'invalid Input' }
 
     const foundUser = await prisma.user.findUnique({
         where: {
