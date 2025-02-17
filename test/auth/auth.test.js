@@ -1,7 +1,7 @@
 const request = require('supertest');
 const { app, server } = require('../../src/server');
 const prisma = require('../../src/lib/prisma');
-const deleteUser = require('../test.utils');
+const { deleteUser } = require('../test.utils');
 
 afterAll(async () => {
     await deleteUser();
