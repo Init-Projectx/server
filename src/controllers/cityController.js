@@ -35,7 +35,7 @@ const findOne = async (req, res, next) => {
 
 const searchCities = async (req, res, next) => {
     try {
-        const params = req.query;
+        const params = req.query.city;
         const data = await cityService.searchCities(params);
 
         res.status(200).json(data);

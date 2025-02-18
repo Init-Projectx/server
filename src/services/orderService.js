@@ -43,7 +43,11 @@ const createOrder = async (params) => {
 
   if (!address || address === null) throw { name: 'invalidInput', message: 'Address Required' }
 
-  if (order_items_attributes.quantity >= 0) throw { name: 'invalidInput', message: 'Invalid input quantity' }
+  order_items_attributes.map(p => {
+    if (p.quantity <= 0) {
+      throw { name: 'invalidInput', message: 'Invalid input quantity' }
+    }
+  });
 
   return await prisma.$transaction(async (prisma) => {
     const products = await prisma.product.findMany({

@@ -16,7 +16,7 @@ const findOne = async (params) => {
 
 const findAll = async (params) => {
     const page = parseInt(params.page) || 1;
-    const pageSize = parseInt(params.pageSize) || 120;
+    const pageSize = parseInt(params.take) || 120;
 
     const skip = (page - 1) * pageSize;
     const take = pageSize;
@@ -46,17 +46,16 @@ const findAll = async (params) => {
 };
 
 const searchCities = async (params) => {
-    const {query} = params;
     const data = await prisma.city.findMany({
         where: {
             name: {
-                startsWith: query,
+                startsWith: params,
                 mode: 'insensitive'
             }
         }, take: 10
     });
 
     return data
-} 
+}
 
 module.exports = { findOne, findAll, searchCities };

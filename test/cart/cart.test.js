@@ -1,27 +1,13 @@
 const request = require('supertest');
 const { app, server } = require('../../src/server');
 const prisma = require('../../src/lib/prisma');
-const deleteUser = require('../test.utils');
+const { deleteUser, createUserTest } = require('../test.utils');
 
 let token;
 let userId;
 
 beforeAll(async () => {
-    const userData = {
-        username: "test",
-        email: "test@mail.com",
-        password: "password"
-    };
-
-    const response = await request(app)
-        .post("/v1/api/auth/register")
-        .send(userData)
-
-    if (!response.body.token) {
-        throw new Error("register failed");
-    }
-
-    token = response.body.token;
+    token = await createUserTest();
 
     const user = await prisma.user.findUnique({
         where: {

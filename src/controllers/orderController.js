@@ -1,5 +1,3 @@
-
-const { user } = require('../lib/prisma');
 const orderService = require('../services/orderService');
 
 const findAll = async (req, res, next) => {
