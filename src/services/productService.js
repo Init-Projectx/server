@@ -56,7 +56,7 @@ const findByCategory = async (categoryId) => {
     },
   });
 
-  if (!products) {
+  if (!products || products == [] || products.length == 0) {
     throw {
       name: "notFound",
       message: "Failed to get data products by category",

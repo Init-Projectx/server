@@ -5,7 +5,7 @@ const { generateToken } = require('../lib/jwt');
 //login register perlu di handle error seperti null dsb
 
 const register = async (params) => {
-    const { username, email, password } = params;
+    const { username, email, password, role } = params;
 
     if (username === "" || email === "" || password === "") throw { name: 'invalidInput', message: 'Invalid Input' }
 
@@ -32,7 +32,8 @@ const register = async (params) => {
         data: {
             username: username,
             email: email,
-            password: encryptPassword
+            password: encryptPassword,
+            role: role? "admin" : "user"
         }
     });
 
