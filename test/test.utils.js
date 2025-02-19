@@ -4,9 +4,15 @@ const { register } = require('../src/services/authService');
 
 const deleteUser = async () => {
     try {
-        await prisma.user.delete({
+        await prisma.user.deleteMany({
             where: {
-                email: "test@mail.com"
+                OR: [
+                    {
+                        email: "test@mail.com"
+                    }, {
+                        email: "testadmin@mail.com"
+                    }
+                ]
             }
         });
     } catch (error) {
@@ -29,4 +35,21 @@ const createUserTest = async () => {
     }
 }
 
-module.exports = { deleteUser, createUserTest };
+const userAdmin = async () => {
+    try {
+        const data = {
+            username: "testadmin",
+            email: "testadmin@mail.com",
+            password: "password",
+            role: "admin"
+        }
+
+        const admin = await register(data);
+
+        return admin;
+    } catch (error) {
+        console.log("Error create user admin", error);
+    }
+}
+
+module.exports = { deleteUser, createUserTest, userAdmin };
