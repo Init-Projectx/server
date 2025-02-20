@@ -13,6 +13,10 @@ const addStock = async (params) => {
 
     if (existingProduct) throw { name: 'exist', message: 'Product already exist, you can update product stock' }
 
+    if (!params.stock) {
+        throw { name: "InvalidInput", message: "Please input product stock quantity" }
+    };
+
     const data = await prisma.product_Warehouse.create({
         data: {
             product_id: params.product_id,
