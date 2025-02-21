@@ -39,7 +39,7 @@ const create = async (params) => {
         }
     });
 
-    if (!city) throw { name: 'notFound', message: 'Province Not Found' }
+    if (!province) throw { name: 'notFound', message: 'Province Not Found' }
 
     const data = await prisma.warehouse.create({
         data: {
@@ -82,7 +82,7 @@ const destroy = async (params) => {
 
     const warehouse = await findOne(params);
 
-    if (!warehouse) throw { name: 'notFound', message: 'Warehouse Fr Delete Not Found' }
+    if (!warehouse) throw { name: 'notFound', message: 'Warehouse to Delete Not Found' }
 
     const data = await prisma.warehouse.update({
         where: {
